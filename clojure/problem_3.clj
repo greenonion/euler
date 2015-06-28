@@ -15,29 +15,25 @@
 
 ;; Clojure implementation of the suggested algorithm.
 
-(defn cont-divide [n f]
+(defn reduce-by-factor [n f]
   (loop [n n
          f f]
-    (if (= (mod n f) 0)
-      (recur (/ n f) f)
-      n)))
-
-(defn reduce-by-factor [n f]
-  (let [orig n
-        limit (Math/sqrt n)]
-      (loop [n n
-             f f]
-         (cond
-           (= n 1) f
-           (= (mod n f) 0) (recur (cont-divide n f) f)
-           (> n limit) orig
-           :else (recur n (+ f 2))))))
+    (cond
+      (= n 1) f
+      (zero? (mod n f)) (recur (/ n f) f)
+      (> f (Math/sqrt n)) n
+      :else (recur n (+ f 2)))))
 
 (defn largest-prime-factor [n]
-  (let [f 2]
-    (if (= (mod n f) 0)
-      (reduce-by-factor (cont-divide n f) 3)
-      (reduce-by-factor n 3))))
+  ;; quickly reduce even numbers
+  (if (zero? (mod n 2))
+    (reduce-by-factor
+     (loop [n n]
+       (if (zero? (mod n 2))
+         (recur (/ n 2))
+         n))
+     3)
+    (reduce-by-factor n 3)))
 
 ;; Posible improvements so this becomes more Clojure-ian:
 ;; * generate factors as a lazy list 3..sqrt(N) in steps of 2
